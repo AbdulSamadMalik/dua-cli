@@ -1,8 +1,9 @@
-use crate::{crossdev, get_size_or_panic, inodefilter::InodeFilter, Throttle, WalkOptions};
+use crate::{Throttle, WalkOptions, crossdev, get_size_or_panic, inodefilter::InodeFilter};
 
 use crossbeam::channel::Receiver;
 use filesize::PathExt;
-use petgraph::{graph::NodeIndex, stable_graph::StableGraph, Directed, Direction};
+use petgraph::{Directed, Direction, graph::NodeIndex, stable_graph::StableGraph};
+use std::time::Instant;
 use std::{
     fmt,
     fs::Metadata,
@@ -60,6 +61,10 @@ pub struct Traversal {
     pub tree: Tree,
     /// The top-level node of the tree.
     pub root_index: TreeIndex,
+    /// The time at which the instance was created, typically the start of the traversal.
+    pub start_time: Instant,
+    /// The time it cost to compute the traversal, when done.
+    pub cost: Option<Duration>,
 }
 
 impl Default for Traversal {
@@ -72,7 +77,12 @@ impl Traversal {
     pub fn new() -> Self {
         let mut tree = Tree::new();
         let root_index = tree.add_node(EntryData::default());
-        Self { tree, root_index }
+        Self {
+            tree,
+            root_index,
+            start_time: Instant::now(),
+            cost: None,
+        }
     }
 
     pub fn recompute_node_size(&self, node_index: TreeIndex) -> u128 {
@@ -80,6 +90,10 @@ impl Traversal {
             .neighbors_directed(node_index, Direction::Outgoing)
             .map(|idx| get_size_or_panic(&self.tree, idx))
             .sum()
+    }
+
+    pub fn is_costly(&self) -> bool {
+        self.cost.is_none_or(|d| d.as_secs_f32() > 10.0)
     }
 }
 
@@ -286,7 +300,7 @@ impl BackgroundTraversal {
                         let mut mtime: SystemTime = UNIX_EPOCH;
                         let mut file_count = 0u64;
                         match &entry.client_state {
-                            Some(Ok(ref m)) => {
+                            Some(Ok(m)) => {
                                 if self.walk_options.count_hard_links
                                     || self.inodes.add(m)
                                         && (self.walk_options.cross_filesystems
