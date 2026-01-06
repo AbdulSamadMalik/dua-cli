@@ -52,6 +52,22 @@ impl AppState {
         }
     }
 
+    pub fn reveal_in_explorer(&self, tree_view: &TreeView<'_>) {
+        if let Some(idx) = self.navigation().selected {
+            let path: PathBuf = tree_view.path_of(idx);
+
+            let abs_path = std::path::absolute(&path);
+
+            if let Ok(abs_path) = abs_path {
+                let abs_path = abs_path.to_str().expect("can't convert path to string");
+
+                showfile::show_path_in_file_manager(abs_path);
+            } else {
+                eprintln!("Could not get absolute path");
+            }
+        }
+    }
+
     pub fn exit_node_with_traversal(&mut self, tree_view: &TreeView<'_>) {
         let entries = self.entries_for_exit_node(tree_view);
         self.exit_node(entries);

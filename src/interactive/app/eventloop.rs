@@ -305,6 +305,7 @@ impl AppState {
                 }
                 Main => match key.code {
                     Char('o') => self.open_that(&tree_view),
+                    Char('i') => self.reveal_in_explorer(&tree_view),
                     Char(' ') => self.mark_entry(
                         CursorMode::KeepPosition,
                         MarkEntryMode::Toggle,
