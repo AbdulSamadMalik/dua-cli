@@ -119,6 +119,8 @@ pub fn aggregate(
     }
 
     if num_roots > 1 && compute_total {
+        println!("\n");
+
         output_colored_path(
             &mut out,
             Path::new("total"),
