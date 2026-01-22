@@ -68,6 +68,106 @@ impl AppState {
         }
     }
 
+    pub fn copy_path(&self, tree_view: &TreeView<'_>) {
+        if let Some(idx) = self.navigation().selected {
+            let path: PathBuf = tree_view.path_of(idx);
+            let abs_path = std::path::absolute(&path);
+            if let Ok(abs_path) = abs_path {
+                let abs_path = abs_path.to_str().expect("can't convert path to string");
+                let mut clipboard = arboard::Clipboard::new().expect("failed to create clipboard");
+                clipboard
+                    .set_text(abs_path)
+                    .expect("failed to set clipboard contents");
+            } else {
+                eprintln!("Could not get absolute path");
+            }
+        }
+    }
+
+    pub fn share_file_via_kde_connect(&mut self, tree_view: &TreeView<'_>) {
+        if let Some(idx) = self.navigation().selected {
+            let path: PathBuf = tree_view.path_of(idx);
+
+            let abs_path = std::path::absolute(&path);
+
+            if let Ok(abs_path) = abs_path {
+                let abs_path = abs_path.to_str().expect("can't convert path to string");
+
+                let output = std::process::Command::new("kdeconnect-cli")
+                    .arg("--share")
+                    .arg(abs_path)
+                    .arg("-n")
+                    .arg("iQOO 12")
+                    .output()
+                    .expect("failed to execute command");
+
+                if output.status.success() {
+                    self.message = Some("File shared successfully".to_string());
+                } else {
+                    self.message = Some("Failed to share file".to_string());
+                    eprintln!("path: {}", abs_path);
+                    // eprintln!("Output: {}", String::from_utf8_lossy(&output.stdout));
+                    // eprintln!("Error: {}", String::from_utf8_lossy(&output.stderr));
+                }
+            } else {
+                eprintln!("Could not get absolute path");
+            }
+        }
+    }
+
+    pub fn open_preview_mac(&mut self, tree_view: &TreeView<'_>) {
+        if let Some(idx) = self.navigation().selected {
+            let path: PathBuf = tree_view.path_of(idx);
+            let abs_path = std::path::absolute(&path);
+            if let Ok(abs_path) = abs_path {
+                let abs_path = abs_path.to_str().expect("can't convert path to string");
+
+                let _output = std::process::Command::new("/usr/bin/qlmanage")
+                    .arg("-p")
+                    .arg(abs_path)
+                    .output()
+                    .expect("failed to open Quick Look");
+
+                // let output = std::process::Command::new("/usr/bin/open")
+                //     .arg("-f")
+                //     // .arg("-a")
+                //     // .arg("Preview.app")
+                //     .arg(abs_path)
+                //     // .output()
+                //     .stdin(Stdio::null())
+                //     .stdout(Stdio::null())
+                //     .stderr(Stdio::null())
+                //     .spawn()
+                //     .expect("failed to execute command");
+
+                // Check if the command actually succeeded
+                // if !output.status.success() {
+                //     let stderr = String::from_utf8_lossy(&output.stderr);
+                //     eprintln!("Preview failed to open: {}", stderr);
+                // } else {
+                //     println!("Preview opened successfully.");
+                // }
+
+                // let output = std::process::Command::new("qlmanage")
+                // .arg("-p")
+                // .arg(format!("'{abs_path}'"))
+                // .output()
+                // .expect("failed to execute command");
+
+                // if output.status.success() {
+                //     self.message = Some("Success".to_string());
+                // } else {
+                //     self.message = Some("Failed".to_string());
+                //     // eprintln!("path: {}", abs_path);
+                //     // eprintln!("Output: {}", String::from_utf8_lossy(&output.stdout));
+                //     // eprintln!("Error: {}", String::from_utf8_lossy(&output.stderr));
+                // }
+            } else {
+                eprintln!("Could not get absolute path");
+            }
+        }
+    }
+
     pub fn exit_node_with_traversal(&mut self, tree_view: &TreeView<'_>) {
         let entries = self.entries_for_exit_node(tree_view);
         self.exit_node(entries);
@@ -175,6 +275,7 @@ impl AppState {
         self.toggle_column(Column::MTime);
     }
 
+    #[allow(dead_code)]
     pub fn toggle_count_column(&mut self) {
         self.toggle_column(Column::Count);
     }

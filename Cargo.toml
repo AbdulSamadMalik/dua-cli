@@ -63,6 +63,7 @@ log = "0.4.20"
 log-panics = { version = "2", features = ["with-backtrace"] }
 crossbeam = "0.8"
 showfile = "0.1.1"
+arboard = "3.6.1"
 
 [[bin]]
 name = "dua"

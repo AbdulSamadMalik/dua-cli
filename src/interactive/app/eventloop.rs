@@ -306,6 +306,8 @@ impl AppState {
                 Main => match key.code {
                     Char('o') => self.open_that(&tree_view),
                     Char('i') => self.reveal_in_explorer(&tree_view),
+                    Char('c') => self.copy_path(&tree_view),
+                    Char('k') => self.share_file_via_kde_connect(&tree_view),
                     Char(' ') => self.mark_entry(
                         CursorMode::KeepPosition,
                         MarkEntryMode::Toggle,
@@ -328,17 +330,20 @@ impl AppState {
                     Char('u') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                         self.change_entry_selection(CursorDirection::PageUp)
                     }
-                    Char('k') | Up => self.change_entry_selection(CursorDirection::Up),
-                    Char('j') | Down => self.change_entry_selection(CursorDirection::Down),
+                    // Char('k') |
+                    Up => self.change_entry_selection(CursorDirection::Up),
+                    // Char('j') |
+                    Down => self.change_entry_selection(CursorDirection::Down),
                     PageDown => self.change_entry_selection(CursorDirection::PageDown),
                     Char('d') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                         self.change_entry_selection(CursorDirection::PageDown)
                     }
+                    Char('p') => self.open_preview_mac(&tree_view),
                     Char('s') => self.cycle_sorting(&tree_view),
                     Char('m') => self.cycle_mtime_sorting(&tree_view),
                     Char('M') => self.toggle_mtime_column(),
-                    Char('c') => self.cycle_count_sorting(&tree_view),
-                    Char('C') => self.toggle_count_column(),
+                    Char('C') => self.cycle_count_sorting(&tree_view),
+                    // Char('C') => self.toggle_count_column(),
                     Char('n') => self.cycle_name_sorting(&tree_view),
                     Char('S') => display.byte_vis.cycle(),
                     Char('d') => self.mark_entry(
